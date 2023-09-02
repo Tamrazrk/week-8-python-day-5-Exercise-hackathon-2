@@ -1,0 +1,143 @@
+{% extends "tasks/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Your Tasks</h2>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="filter">Filter by:</label>
+                </div>
+                <select class="custom-select" id="filter" onchange="filterTasks(this.value)">
+                    <option value="all" selected>All</option>
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <input type="text" class="form-control" id="search" placeholder="Search tasks..." onkeyup="searchTasks(this.value)">
+        </div>
+    </div>
+    {% if notifications %}
+    <div class="notifications">
+        {% for notification in notifications %}
+            <div class="notification">
+                {{ notification.message }}
+                <a href="{% url 'tasks:mark_notification_as_read' notification.id %}">Mark as read</a>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <button type="button" class="btn btn-success mb-3" data-toggle="modal" data-target="#addTaskModal">
+        Add New Task
+    </button>
+     <!-- New row for sorting option -->
+     <div class="row mb-2">
+        <div class="col-md-6"></div> <!-- Empty left column to push the dropdown to the right -->
+        <div class="col-md-6 text-right">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="sortOptions">Sort by:</label>
+                </div>
+                <select class="custom-select" id="sortOptions" onchange="sortTasks()">
+                    <option value="title">Title</option>
+                    <option value="status">Status</option>
+                    <option value="created_at">Create TIme</option>
+                    <option value="due_date">Due Date</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <ul class="list-group" id="tasksList">
+        <!-- This will be dynamically populated using JavaScript -->
+    </ul>
+<!-- Task Creation Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" role="dialog" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Task Creation Form -->
+                <form id="addTaskForm">
+                    <div class="form-group">
+                        <label for="taskTitle">Task Title</label>
+                        <input type="text" class="form-control" id="taskTitle" placeholder="Enter task title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDescription">Description</label>
+                        <textarea class="form-control" id="taskDescription" rows="3" placeholder="Enter task description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskStatus">Status</label>
+                        <select class="form-control" id="taskStatus">
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDueDate">Due Date</label>
+                        <input type="datetime-local" class="form-control" id="taskDueDate">
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="submit_btn">Add Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Read Only Task Details Modal -->
+<div class="modal fade" id="taskDetailsModal" tabindex="-1" role="dialog" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskDetailsModalLabel">Task Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <strong>Title:</strong> <span id="detailTitle"></span><br>
+                <strong>Description:</strong> <span id="detailDescription"></span><br>
+                <strong>Status:</strong> <span id="detailStatus"></span><br>
+                <strong>Due Date:</strong> <span id="detailDueDate"></span><br>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+    <nav aria-label="Page navigation example" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item">
+                <button id="prevPage" onclick="changePage(-1)" class="page-link">Previous</button>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link" id="currentPageDisplay">Page 1</span>
+            </li>
+            <li class="page-item">
+                <button id="nextPage" onclick="changePage(1)" class="page-link">Next</button>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script type="text/javascript">
+    var csrftoken = '{{ csrf_token }}';
+</script>
+<script src="{% static 'js/scripts.js' %}"></script>
+
+{% endblock %}
